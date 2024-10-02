@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Ferramentas Úteis</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Menu de Navegação -->
+    <nav>
+        <ul id="menu">
+            <li><a href="#" data-section="home" class="active">Home</a></li>
+            <li><a href="#" data-section="copiador">Copiador de Texto</a></li>
+            <li><a href="#" data-section="gerador">Gerador de Alerta</a></li>
+            <li><a href="#" data-section="anotacoes">Área de Anotações</a></li>
+            <li><a href="#" data-section="calculadora">Calculadora</a></li>
+        </ul>
+    </nav>
+
+    <!-- Seções das Ferramentas -->
+    <div id="home" class="container section">
+        <h1>Bem-vindo ao Ferramentas Úteis</h1>
+        <p>Selecione uma ferramenta no menu acima para começar.</p>
+    </div>
+
+    <div id="copiador" class="container section" style="display: none;">
+        <h1>Copiador de Texto</h1>
+        <div class="input-section">
+            <input type="text" id="input-text" placeholder="Digite o texto aqui">
+            <button id="adicionar-botao">Adicionar Botão</button>
+        </div>
+        <div id="buttons-container">
+            <!-- Botões gerados aparecem aqui -->
+        </div>
+        
+        <!-- Opções para salvar e carregar templates -->
+        <div class="template-section">
+            <h2>Salvar Grupo de Botões como Template</h2>
+            <input type="text" id="nome-template" placeholder="Nome do Template">
+            <button id="salvar-template-grupo">Salvar Template</button>
+            
+            <h2>Templates Salvos</h2>
+            <div id="lista-templates-grupo">
+                <!-- Templates de grupos de botões serão listados aqui -->
+            </div>
+        </div>
+    </div>
+
+    <div id="gerador" class="container section" style="display: none;">
+        <h1>Gerador de Alerta de Monitoramento</h1>
+        <div class="input-section">
+            <label for="alerta">Problema:</label>
+            <textarea id="alerta" placeholder="Digite o tipo de alerta (ex: 'backup')"></textarea>
+
+            <label for="ic">IC Afetada:</label>
+            <textarea id="ic" placeholder="Digite a IC afetada"></textarea>
+
+            <label for="progresso">Link do chamado:</label>
+            <textarea id="progresso" placeholder="Digite o link do chamado aqui..."></textarea>
+
+            <button id="gerar-texto">Gerar Texto</button>
+            <button id="copiar-texto-alerta">Copiar Texto</button>
+        </div>
+        <h2>Texto Gerado:</h2>
+        <pre id="textoGerado"></pre>
+    </div>
+
+    <div id="anotacoes" class="container section" style="display: none;">
+        <h1>Área de Anotações</h1>
+        <div class="input-section">
+            <input type="text" id="titulo-nota" placeholder="Título da anotação">
+            <textarea id="conteudo-nota" placeholder="Escreva suas anotações aqui..." rows="5"></textarea>
+            <button id="salvar-nota">Salvar Anotação</button>
+        </div>
+        <h2>Anotações Salvas:</h2>
+        <div id="lista-anotacoes">
+            <!-- As anotações salvas aparecerão aqui -->
+        </div>
+    </div>
+
+    <div id="calculadora" class="container section" style="display: none;">
+        <h1>Calculadora Simples</h1>
+        <div class="input-section">
+            <input type="number" id="num1" placeholder="Número 1">
+            <input type="number" id="num2" placeholder="Número 2">
+            <select id="operacao">
+                <option value="+">Adição (+)</option>
+                <option value="-">Subtração (-)</option>
+                <option value="*">Multiplicação (×)</option>
+                <option value="/">Divisão (÷)</option>
+            </select>
+            <button id="calcular">Calcular</button>
+        </div>
+        <h2>Resultado:</h2>
+        <p id="resultado"></p>
+    </div>
+
+    <!-- Modal para editar botões -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span id="close-modal" class="close">&times;</span>
+            <h2>Editar Botão</h2>
+            <label for="edit-apelido">Apelido do Botão:</label>
+            <input type="text" id="edit-apelido">
+            <label for="edit-texto">Conteúdo a Ser Copiado:</label>
+            <textarea id="edit-texto"></textarea>
+            <button id="save-changes">Salvar Alterações</button>
+            <button id="delete-button" class="botao-excluir">Excluir Botão</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

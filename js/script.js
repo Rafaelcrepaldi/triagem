@@ -1,35 +1,53 @@
+/* script.js */
+
+// =================== Inicialização e Configuração ===================
+
 document.addEventListener('DOMContentLoaded', function () {
-    // Gerenciamento do menu de navegação
+    inicializarMenu();
+    inicializarBotaoPrincipais();
+    inicializarModal();
+    carregarTemplatesGrupos();
+    carregarAnotacoes();
+    inicializarChatbot(); 
+});
+
+// Variáveis globais para o modal
+let botaoAtual; // Referência ao container do botão que está sendo editado
+let textoOriginal; // Texto original do botão
+
+// =================== Gerenciamento do Menu de Navegação ===================
+
+function inicializarMenu() {
     const menuLinks = document.querySelectorAll('#menu a');
     menuLinks.forEach(function (link) {
         link.addEventListener('click', function (e) {
             e.preventDefault();
             mostrarSecao(this.getAttribute('data-section'));
-            // Atualizar a classe 'active' nos links
-            menuLinks.forEach(function (link) {
-                link.classList.remove('active');
-            });
-            this.classList.add('active');
+            atualizarMenuAtivo(menuLinks, this);
         });
     });
 
-    function mostrarSecao(id) {
-        const sections = document.querySelectorAll('.section');
-        sections.forEach(function (section) {
-            if (section.id === id) {
-                section.style.display = 'block';
-            } else {
-                section.style.display = 'none';
-            }
-        });
-    }
-
     // Mostrar a seção 'home' ao carregar a página
     mostrarSecao('home');
+}
 
-    // Carregar templates salvos ao carregar a página
-    carregarTemplatesGrupos();
+function mostrarSecao(id) {
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(function (section) {
+        section.style.display = (section.id === id) ? 'block' : 'none';
+    });
+}
 
+function atualizarMenuAtivo(menuLinks, linkAtivo) {
+    menuLinks.forEach(function (link) {
+        link.classList.remove('active');
+    });
+    linkAtivo.classList.add('active');
+}
+
+// =================== Inicialização dos Botões Principais ===================
+
+function inicializarBotaoPrincipais() {
     // Mapeamento de IDs de botões para funções
     const buttonMappings = {
         'adicionar-botao': adicionarBotao,
@@ -52,16 +70,77 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('save-changes').addEventListener('click', salvarAlteracoes);
     document.getElementById('delete-button').addEventListener('click', excluirBotao);
     document.getElementById('salvar-template-grupo').addEventListener('click', salvarTemplateGrupo);
+}
 
-    // Carregar anotações
-    carregarAnotacoes();
-});
+// =================== Gerenciamento do Modal ===================
 
-// Variáveis globais para o modal
-let botaoAtual; // Referência ao container do botão que está sendo editado
-let textoOriginal; // Texto original do botão
+function inicializarModal() {
+    // Fechar o modal ao clicar fora do conteúdo
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('edit-modal');
+        if (event.target === modal) {
+            fecharModal();
+        }
+    });
+}
 
-// Função para adicionar um novo botão
+function abrirModal(botao, apelido, texto) {
+    document.getElementById('edit-apelido').value = apelido;
+    document.getElementById('edit-texto').value = texto;
+    document.getElementById('edit-modal').style.display = 'block';
+
+    // Salvar referência ao botão e seus dados
+    botaoAtual = botao.parentElement; // Container do botão
+    textoOriginal = texto;
+
+    // Focar automaticamente no campo de apelido
+    document.getElementById('edit-apelido').focus();
+}
+
+function fecharModal() {
+    document.getElementById('edit-modal').style.display = 'none';
+}
+
+function salvarAlteracoes() {
+    const novoApelido = document.getElementById('edit-apelido').value.trim();
+    const novoTexto = document.getElementById('edit-texto').value.trim();
+
+    if (novoApelido === "" || novoTexto === "") {
+        alert("Por favor, preencha todos os campos.");
+        return;
+    }
+
+    // Atualizar o botão
+    const botaoCopy = botaoAtual.querySelector('.copy-button');
+    botaoCopy.innerText = `Copiar: ${novoApelido}`;
+    botaoCopy.setAttribute('data-texto', novoTexto);
+
+    // Atualizar evento de clique para copiar o novo texto
+    botaoCopy.onclick = function () {
+        copiarTexto(novoTexto);
+    };
+
+    // Atualizar o template se estiver salvo
+    atualizarTemplate(textoOriginal, { texto: novoTexto, apelido: novoApelido });
+
+    fecharModal();
+}
+
+function excluirBotao() {
+    if (confirm("Tem certeza de que deseja excluir este botão?")) {
+        // Remover do DOM
+        botaoAtual.remove();
+
+        // Remover do template salvo, se estiver associado
+        const texto = botaoAtual.querySelector('.copy-button').getAttribute('data-texto');
+        removerBotaoDoTemplate(texto);
+
+        fecharModal();
+    }
+}
+
+// =================== Gerenciamento de Botões de Copiar ===================
+
 function adicionarBotao() {
     const texto = document.getElementById('input-text').value.trim();
 
@@ -75,15 +154,14 @@ function adicionarBotao() {
     document.getElementById('input-text').value = "";
 }
 
-// Função para criar um botão personalizado
 function criarBotao(texto, apelido, cor) {
-    const botao = document.createElement('button');
-    botao.innerText = `Copiar: ${apelido}`;
-    botao.className = 'copy-button';
-    botao.style.backgroundColor = cor;
-    botao.setAttribute('data-texto', texto); // Adiciona o atributo data-texto
+    const botaoCopy = document.createElement('button');
+    botaoCopy.innerText = `Copiar: ${apelido}`;
+    botaoCopy.className = 'copy-button';
+    botaoCopy.style.backgroundColor = cor;
+    botaoCopy.setAttribute('data-texto', texto);
 
-    botao.addEventListener('click', function () {
+    botaoCopy.addEventListener('click', function () {
         copiarTexto(texto);
     });
 
@@ -92,93 +170,30 @@ function criarBotao(texto, apelido, cor) {
     botaoEditar.className = 'edit-button';
 
     botaoEditar.addEventListener('click', function () {
-        // Abrir modal para editar
-        botaoAtual = this.parentElement; // Container do botão
-        textoOriginal = texto;
-        const apelidoAtual = obterApelido(botaoAtual);
-        abrirModal(botao, apelidoAtual, texto);
+        abrirModal(this, obterApelido(this.parentElement), texto);
     });
 
     const botaoContainer = document.createElement('div');
     botaoContainer.className = 'botao-container';
-    botaoContainer.appendChild(botao);
+    botaoContainer.appendChild(botaoCopy);
     botaoContainer.appendChild(botaoEditar);
 
     document.getElementById('buttons-container').appendChild(botaoContainer);
 }
 
-// Helper para obter o apelido atual do botão
 function obterApelido(botaoContainer) {
     const botao = botaoContainer.querySelector('.copy-button');
     return botao.innerText.replace('Copiar: ', '');
 }
 
-// Função para abrir o modal de edição
-function abrirModal(botao, apelido, texto) {
-    document.getElementById('edit-apelido').value = apelido;
-    document.getElementById('edit-texto').value = texto;
-    document.getElementById('edit-modal').style.display = 'block';
-
-    // Salvar referência ao botão e seus dados
-    botaoAtual.botao = botao;
-    botaoAtual.apelido = apelido;
-    botaoAtual.texto = texto;
-
-    // Focar automaticamente no campo de apelido
-    document.getElementById('edit-apelido').focus();
-}
-
-// Função para fechar o modal
-function fecharModal() {
-    document.getElementById('edit-modal').style.display = 'none';
-}
-
-// Função para salvar alterações do modal
-function salvarAlteracoes() {
-    const novoApelido = document.getElementById('edit-apelido').value.trim();
-    const novoTexto = document.getElementById('edit-texto').value.trim();
-
-    if (novoApelido === "" || novoTexto === "") {
-        alert("Por favor, preencha todos os campos.");
-        return;
-    }
-
-    // Atualizar o botão
-    botaoAtual.botao.innerText = `Copiar: ${novoApelido}`;
-    botaoAtual.botao.setAttribute('data-texto', novoTexto);
-    botaoAtual.texto = novoTexto;
-
-    // Atualizar evento de clique para copiar o novo texto
-    botaoAtual.botao.onclick = function () {
-        copiarTexto(novoTexto);
-    };
-
-    // Atualizar o template se estiver salvo
-    atualizarTemplate(botaoAtual.botao.getAttribute('data-texto'), { texto: novoTexto, apelido: novoApelido });
-
-    fecharModal();
-}
-
-// Função para excluir o botão
-function excluirBotao() {
-    if (confirm("Tem certeza de que deseja excluir este botão?")) {
-        // Remover do DOM
-        botaoAtual.remove();
-        // Remover do template salvo, se estiver associado
-        removerBotaoDoTemplate(botaoAtual.botao.getAttribute('data-texto'));
-        fecharModal();
-    }
-}
-
-// Função para gerar uma cor aleatória
 function gerarCorAleatoria() {
     return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
 }
 
-// Função para copiar texto para a área de transferência
 function copiarTexto(texto) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(texto).then(() => {
+            alert("Texto copiado com sucesso!");
         }).catch(err => {
             console.error('Erro ao copiar texto: ', err);
             alert('Falha ao copiar o texto.');
@@ -190,7 +205,6 @@ function copiarTexto(texto) {
 
 // =================== Gerenciamento de Templates ===================
 
-// Função para salvar um grupo de botões como template
 function salvarTemplateGrupo() {
     const nomeTemplate = document.getElementById('nome-template').value.trim();
 
@@ -229,13 +243,11 @@ function salvarTemplateGrupo() {
     document.getElementById('nome-template').value = "";
 }
 
-// Função para carregar templates salvos ao abrir a página
 function carregarTemplatesGrupos() {
     const templatesGrupos = JSON.parse(localStorage.getItem('templatesGrupos')) || [];
     templatesGrupos.forEach(exibirTemplateGrupo);
 }
 
-// Função para exibir um template de grupo de botões na página
 function exibirTemplateGrupo(templateGrupo) {
     const lista = document.getElementById('lista-templates-grupo');
 
@@ -266,7 +278,6 @@ function exibirTemplateGrupo(templateGrupo) {
     lista.appendChild(divTemplateGrupo);
 }
 
-// Função para carregar os botões de um template salvo
 function carregarTemplateEspecifico(templateGrupo) {
     const substituir = confirm("Deseja substituir os botões atuais pelos do template? Clique em 'OK' para substituir ou 'Cancelar' para mesclar.");
 
@@ -279,7 +290,6 @@ function carregarTemplateEspecifico(templateGrupo) {
     });
 }
 
-// Função para excluir um template de grupo de botões
 function excluirTemplateGrupo(nome, elementoHTML) {
     if (!confirm(`Tem certeza de que deseja excluir o template "${nome}"?`)) {
         return;
@@ -292,9 +302,6 @@ function excluirTemplateGrupo(nome, elementoHTML) {
     elementoHTML.remove();
 }
 
-// =================== Atualização e Remoção de Botões nos Templates ===================
-
-// Função para atualizar um botão em todos os templates que o utilizam
 function atualizarTemplate(textoOriginal, botaoAtualizado) {
     let templatesGrupos = JSON.parse(localStorage.getItem('templatesGrupos')) || [];
     templatesGrupos.forEach(template => {
@@ -308,7 +315,6 @@ function atualizarTemplate(textoOriginal, botaoAtualizado) {
     localStorage.setItem('templatesGrupos', JSON.stringify(templatesGrupos));
 }
 
-// Função para remover um botão de todos os templates que o utilizam
 function removerBotaoDoTemplate(texto) {
     let templatesGrupos = JSON.parse(localStorage.getItem('templatesGrupos')) || [];
     templatesGrupos.forEach(template => {
@@ -317,9 +323,8 @@ function removerBotaoDoTemplate(texto) {
     localStorage.setItem('templatesGrupos', JSON.stringify(templatesGrupos));
 }
 
-// =================== Funções para Anotações ===================
+// =================== Gerenciamento de Anotações ===================
 
-// Função para salvar uma nova anotação
 function salvarNota() {
     const titulo = document.getElementById('titulo-nota').value.trim();
     const conteudo = document.getElementById('conteudo-nota').value.trim();
@@ -342,13 +347,11 @@ function salvarNota() {
     document.getElementById('conteudo-nota').value = "";
 }
 
-// Função para carregar e exibir as anotações salvas
 function carregarAnotacoes() {
     const anotacoes = JSON.parse(localStorage.getItem('anotacoes')) || [];
     anotacoes.forEach(exibirAnotacao);
 }
 
-// Função para exibir uma anotação na página
 function exibirAnotacao(anotacao) {
     const lista = document.getElementById('lista-anotacoes');
 
@@ -365,7 +368,6 @@ function exibirAnotacao(anotacao) {
     const botaoBaixar = document.createElement('button');
     botaoBaixar.innerText = 'Baixar Anotação';
     botaoBaixar.className = 'botao-baixar';
-
     botaoBaixar.addEventListener('click', function () {
         baixarAnotacao(anotacao);
     });
@@ -373,7 +375,6 @@ function exibirAnotacao(anotacao) {
     const botaoExcluir = document.createElement('button');
     botaoExcluir.innerText = 'Excluir Anotação';
     botaoExcluir.className = 'botao-excluir';
-
     botaoExcluir.addEventListener('click', function () {
         excluirAnotacao(anotacao.id, divAnotacao);
     });
@@ -386,7 +387,6 @@ function exibirAnotacao(anotacao) {
     lista.appendChild(divAnotacao);
 }
 
-// Função para baixar uma anotação como TXT
 function baixarAnotacao(anotacao) {
     const texto = `Título: ${anotacao.titulo}\n\n${anotacao.conteudo}`;
     const blob = new Blob([texto], { type: "text/plain;charset=utf-8" });
@@ -396,7 +396,6 @@ function baixarAnotacao(anotacao) {
     link.click();
 }
 
-// Função para excluir uma anotação
 function excluirAnotacao(id, elementoHTML) {
     if (!confirm("Tem certeza de que deseja excluir esta anotação?")) {
         return;
@@ -411,9 +410,33 @@ function excluirAnotacao(id, elementoHTML) {
     localStorage.setItem('anotacoes', JSON.stringify(anotacoes));
 }
 
-// =================== Função para Calcular ===================
+// =================== Funções para Gerador de Alerta ===================
 
-// Função para calcular o resultado na calculadora
+function gerarTexto() {
+    const alerta = document.getElementById('alerta').value.trim();
+    const ic = document.getElementById('ic').value.trim();
+    const progresso = document.getElementById('progresso').value.trim();
+
+    if (alerta === "" || ic === "" || progresso === "") {
+        alert("Por favor, preencha todos os campos.");
+        return;
+    }
+
+    const texto = `Alerta: ${alerta}\nIC Afetada: ${ic}\nProgresso: ${progresso}`;
+    document.getElementById('textoGerado').innerText = texto;
+}
+
+function copiarTextoAlerta() {
+    const texto = document.getElementById('textoGerado').innerText;
+    if (texto === "") {
+        alert("Não há texto para copiar.");
+        return;
+    }
+    copiarTexto(texto);
+}
+
+// =================== Função para Calculadora ===================
+
 function calcular() {
     const num1 = parseFloat(document.getElementById('num1').value);
     const num2 = parseFloat(document.getElementById('num2').value);
@@ -446,32 +469,60 @@ function calcular() {
             alert("Operação inválida.");
             return;
     }
+    function inicializarChatbot() {
+        const sendButton = document.getElementById('send-message');
+        const userInput = document.getElementById('user-input');
+        const chatMessages = document.getElementById('chat-messages');
+    
+        sendButton.addEventListener('click', function () {
+            enviarMensagem();
+        });
+    
+        userInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                enviarMensagem();
+            }
+        });
+    
+        function enviarMensagem() {
+            const mensagem = userInput.value.trim();
+            if (mensagem === "") return;
+    
+            exibirMensagem(mensagem, 'user');
+            userInput.value = "";
+            // Enviar para o servidor (back-end)
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: mensagem })
+            })
+            .then(response => response.json())
+            .then(data => {
+                exibirMensagem(data.reply, 'bot');
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                exibirMensagem('Desculpe, ocorreu um erro ao processar sua solicitação.', 'bot');
+            });
+        }
+    
+        function exibirMensagem(texto, tipo) {
+            const mensagemDiv = document.createElement('div');
+            mensagemDiv.classList.add('message', tipo);
+    
+            const textoSpan = document.createElement('span');
+            textoSpan.classList.add('text');
+            textoSpan.innerText = texto;
+    
+            mensagemDiv.appendChild(textoSpan);
+            chatMessages.appendChild(mensagemDiv);
+    
+            // Scroll para a última mensagem
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
 
     document.getElementById('resultado').innerText = resultado;
 }
-function copiarTextoAlerta() {
-    const texto = document.getElementById('textoGerado').innerText;
-    if (texto === "") {
-        alert("Não há texto para copiar.");
-        return;
-    }
-    copiarTexto(texto); // Utilize a função existente para copiar
-}
-
-function gerarTexto() {
-    const alerta = document.getElementById('alerta').value.trim();
-    const ic = document.getElementById('ic').value.trim();
-    const progresso = document.getElementById('progresso').value.trim();
-
-    if (alerta === "" || ic === "" || progresso === "") {
-        alert("Por favor, preencha todos os campos.");
-        return;
-    }
-
-    const texto = `Alerta: ${alerta}\nIC Afetada: ${ic}\nProgresso: ${progresso}`;
-    document.getElementById('textoGerado').innerText = texto;
-}
-
-
-// =================== Carregar Anotações ao Carregar a Página ===================
-// (Já está sendo chamado dentro do DOMContentLoaded)

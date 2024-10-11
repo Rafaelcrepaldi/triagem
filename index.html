@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Ferramentas Úteis</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <!-- Menu de Navegação -->
@@ -18,12 +18,12 @@
     </nav>
 
     <!-- Seções das Ferramentas -->
-    <div id="home" class="container section">
+    <div id="home" class="container section active">
         <h1>Bem-vindo ao Ferramentas Úteis</h1>
         <p>Selecione uma ferramenta no menu acima para começar.</p>
     </div>
 
-    <div id="copiador" class="container section" style="display: none;">
+    <div id="copiador" class="container section">
         <h1>Copiador de Texto</h1>
         <div class="input-section">
             <input type="text" id="input-text" placeholder="Digite o texto aqui">
@@ -46,7 +46,7 @@
         </div>
     </div>
 
-    <div id="gerador" class="container section" style="display: none;">
+    <div id="gerador" class="container section">
         <h1>Gerador de Alerta de Monitoramento</h1>
         <div class="input-section">
             <label for="alerta">Problema:</label>
@@ -65,7 +65,7 @@
         <pre id="textoGerado"></pre>
     </div>
 
-    <div id="anotacoes" class="container section" style="display: none;">
+    <div id="anotacoes" class="container section">
         <h1>Área de Anotações</h1>
         <div class="input-section">
             <input type="text" id="titulo-nota" placeholder="Título da anotação">
@@ -78,7 +78,7 @@
         </div>
     </div>
 
-    <div id="calculadora" class="container section" style="display: none;">
+    <div id="calculadora" class="container section">
         <h1>Calculadora Simples</h1>
         <div class="input-section">
             <input type="number" id="num1" placeholder="Número 1">
@@ -109,6 +109,19 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- DIV CHATBOT -->
+    <div id="chatbot" class="container section" style="display: none;">
+        <h1>Chatbot de Suporte</h1>
+        <div id="chat-window">
+            <div id="chat-messages"></div>
+            <div id="chat-input">
+                <input type="text" id="user-input" placeholder="Digite sua mensagem...">
+                <button id="send-message">Enviar</button>
+            </div>
+        </div>
+    </div>
+    
+
+    <script src="js/script.js"></script>
 </body>
 </html>
